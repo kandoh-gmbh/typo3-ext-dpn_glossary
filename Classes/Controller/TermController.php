@@ -75,7 +75,15 @@ class TermController extends ActionController
     public function listAction(?string $currentCharacter = null): ResponseInterface
     {
         $listMode = $this->settings['listmode'] ?? 'normal';
-        $terms = $this->termRepository->findAll();
+
+        $searchTerm = $this->request->hasArgument('searchTerm')
+            ? trim((string)$this->request->getArgument('searchTerm'))
+            : null
+        ;
+        $terms = empty($searchTerm)
+            ? $terms = $this->termRepository->findAll()
+            : $this->termRepository->findByTerm($searchTerm)
+        ;
 
         switch ($listMode) {
             case 'character':
@@ -115,6 +123,7 @@ class TermController extends ActionController
         $this->view->assignMultiple([
             'listmode' => $listMode,
             'terms' => $terms,
+            'searchTerm' => $searchTerm,
         ]);
 
         return $this->htmlResponse();
